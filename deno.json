@@ -1,0 +1,14 @@
+{
+  "name": "@mega/memoize",
+  "version": "0.1.0",
+  "exports": {
+    ".": "./memoize.ts",
+    "./async": "./memoizeAsync.ts",
+    "./cache/memory": "./memoryCache.ts",
+    "./cache/denoKv": "./denoKvCache.ts",
+    "./cache/domStorage": "./domStorageCache.ts",
+    "./utils/keyNormalizer": "./KeyNormalizer.ts",
+    "./utils/valueSerializer": "./ValueSerializer.ts"
+  },
+  "lock": false
+}
