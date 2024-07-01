@@ -1,14 +1,21 @@
 {
   "name": "@mega/memoize",
   "version": "0.1.0",
+  "compilerOptions": {
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true
+  },
   "exports": {
     ".": "./memoize.ts",
     "./async": "./memoizeAsync.ts",
     "./cache/memory": "./memoryCache.ts",
-    "./cache/denoKv": "./denoKvCache.ts",
     "./cache/domStorage": "./domStorageCache.ts",
+    "./cache/denoKv": "./denoKvCache.ts",
     "./utils/keyNormalizer": "./KeyNormalizer.ts",
     "./utils/valueSerializer": "./ValueSerializer.ts"
   },
+  "exclude": [
+    ".*"
+  ],
   "lock": false
 }
