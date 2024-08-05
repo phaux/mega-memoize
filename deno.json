@@ -15,7 +15,9 @@
     "./utils/valueSerializer": "./ValueSerializer.ts"
   },
   "exclude": [
-    ".*"
+    "coverage/",
+    ".*",
+    "*config.*"
   ],
   "lock": false
 }

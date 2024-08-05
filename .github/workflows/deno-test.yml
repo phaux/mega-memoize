@@ -14,4 +14,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: denoland/setup-deno@v1
-      - run: deno test --unstable-kv --doc
+      - run: deno test --unstable-kv --doc --coverage
+      - run: deno coverage --lcov --output=coverage/lcov.info
+      - uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
