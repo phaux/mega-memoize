@@ -22,5 +22,10 @@
   "publish": {
     "exclude": [".*"]
   },
+  "lint": {
+    "rules": {
+      "include": ["no-console"]
+    }
+  },
   "lock": false
 }
