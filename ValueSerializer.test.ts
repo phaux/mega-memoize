@@ -63,6 +63,34 @@ Deno.test("caches Date values (turns to string)", () => {
   assertEquals(memoFn(1), "1970-01-01T00:00:00.001Z");
 });
 
+Deno.test("caches RegExp values", () => {
+  const fn = (a: number, f: string): RegExp | string => {
+    return new RegExp(`^${a}$`, f);
+  };
+
+  const memoFn = memoize(fn, {
+    cache: domStorageCache(sessionStorage, "val:regexp", {
+      valueSerializer: smartValueSerializer(),
+    }),
+  });
+
+  assertEquals(sessionStorage.getItem('val:regexp[1,"g"]'), null);
+  assertEquals(memoFn(1, "g"), /^1$/g);
+  assertEquals(
+    sessionStorage.getItem('val:regexp[1,"g"]'),
+    '{"$regexp":{"s":"^1$","f":"g"}}',
+  );
+  assertEquals(memoFn(1, "g"), /^1$/g);
+
+  assertEquals(sessionStorage.getItem('val:regexp[123,""]'), null);
+  assertEquals(memoFn(123, ""), /^123$/);
+  assertEquals(
+    sessionStorage.getItem('val:regexp[123,""]'),
+    '{"$regexp":{"s":"^123$","f":""}}',
+  );
+  assertEquals(memoFn(123, ""), /^123$/);
+});
+
 Deno.test("caches UInt8Array values", () => {
   const fn = (a: number) => {
     return new Uint8Array([a]);
@@ -153,6 +181,59 @@ Deno.test("caches Set values", () => {
   assertEquals(memoFn(1, "b"), new Set([1, "b"]));
   assertEquals(sessionStorage.getItem('val:set[1,"b"]'), '{"$set":[1,"b"]}');
   assertEquals(memoFn(1, "b"), new Set([1, "b"]));
+});
+
+Deno.test("caches URL values (turns into string)", () => {
+  const fn = (a: number, b: string): URL | string => {
+    return new URL(`https://example.com/${a}/${b}`);
+  };
+
+  const memoFn = memoize(fn, {
+    cache: domStorageCache(sessionStorage, "val:url", {
+      valueSerializer: smartValueSerializer(),
+    }),
+  });
+
+  assertEquals(sessionStorage.getItem('val:url[1,"b"]'), null);
+  assertEquals(memoFn(1, "b"), new URL("https://example.com/1/b"));
+  assertEquals(
+    sessionStorage.getItem('val:url[1,"b"]'),
+    '"https://example.com/1/b"',
+  );
+  assertEquals(memoFn(1, "b"), "https://example.com/1/b");
+});
+
+Deno.test("caches URLSearchParams", () => {
+  const fn = (...p: [string, string][]) => {
+    return new URLSearchParams(p);
+  };
+
+  const memoFn = memoize(fn, {
+    cache: domStorageCache(sessionStorage, "val:urlsearchparams", {
+      valueSerializer: smartValueSerializer(),
+    }),
+  });
+
+  assertEquals(sessionStorage.getItem('val:urlsearchparams[["a","b"]]'), null);
+  assertEquals(memoFn(["a", "b"]), new URLSearchParams([["a", "b"]]));
+  assertEquals(
+    sessionStorage.getItem('val:urlsearchparams[["a","b"]]'),
+    '{"$urlsearchparams":"a=b"}',
+  );
+  assertEquals(memoFn(["a", "b"]), new URLSearchParams([["a", "b"]]));
+
+  assertEquals(
+    sessionStorage.getItem('val:urlsearchparams[["a","1"],["a","2"]]'),
+    null,
+  );
+  assertEquals(
+    memoFn(["a", "1"], ["a", "2"]),
+    new URLSearchParams([["a", "1"], ["a", "2"]]),
+  );
+  assertEquals(
+    sessionStorage.getItem('val:urlsearchparams[["a","1"],["a","2"]]'),
+    '{"$urlsearchparams":"a=1&a=2"}',
+  );
 });
 
 Deno.test("caches complex values", () => {
