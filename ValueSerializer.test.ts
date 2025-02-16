@@ -1,4 +1,4 @@
-import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertEquals } from "@std/assert";
 import { memoize } from "./memoize.ts";
 import { domStorageCache } from "./domStorageCache.ts";
 import { smartValueSerializer } from "./ValueSerializer.ts";

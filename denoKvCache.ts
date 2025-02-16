@@ -1,6 +1,4 @@
-import { smartKeyNormalizer } from "./KeyNormalizer.ts";
 import type { MemoizeAsyncCache } from "./memoizeAsync.ts";
-import { memoryCache } from "./memoryCache.ts";
 
 /**
  * Creates a {@link MemoizeAsyncCache} using a {@link Deno.Kv} store.
@@ -12,7 +10,10 @@ import { memoryCache } from "./memoryCache.ts";
  * @template A Arguments tuple type.
  * @template R Result type.
  */
-export function denoKvCache<A extends Deno.KvKey, R>(
+export function denoKvCache<
+  A extends Deno.KvKey,
+  R extends NonNullable<unknown>,
+>(
   db: Deno.Kv,
   keyPrefix: Deno.KvKey,
 ): MemoizeAsyncCache<A, R> {
@@ -28,10 +29,5 @@ export function denoKvCache<A extends Deno.KvKey, R>(
     async delete(key) {
       await db.delete([...keyPrefix, ...key]);
     },
-
-    promiseCache: () =>
-      memoryCache<A, Promise<R>>({
-        keyNormalizer: smartKeyNormalizer(),
-      }),
   };
 }

@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v1
+      - uses: denoland/setup-deno@v2
       - run: deno test --unstable-kv --doc --coverage
       - run: deno coverage --lcov --output=coverage/lcov.info
       - uses: codecov/codecov-action@v4

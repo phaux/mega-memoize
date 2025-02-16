@@ -5,19 +5,18 @@
     "exactOptionalPropertyTypes": true,
     "noUncheckedIndexedAccess": true
   },
+  "imports": {
+    "@std/assert": "jsr:@std/assert@^1.0.11",
+    "@std/async": "jsr:@std/async@^1.0.10"
+  },
   "exports": {
     ".": "./memoize.ts",
     "./async": "./memoizeAsync.ts",
     "./cache/memory": "./memoryCache.ts",
     "./cache/domStorage": "./domStorageCache.ts",
     "./cache/denoKv": "./denoKvCache.ts",
-    "./utils/keyNormalizer": "./KeyNormalizer.ts",
-    "./utils/valueSerializer": "./ValueSerializer.ts"
+    "./keyNormalizer": "./KeyNormalizer.ts",
+    "./valueSerializer": "./ValueSerializer.ts"
   },
-  "exclude": [
-    "coverage/",
-    ".*",
-    "*config.*"
-  ],
   "lock": false
 }

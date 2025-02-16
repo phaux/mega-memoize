@@ -22,19 +22,32 @@
  * @module
  */
 
-import { memoryCache } from "./memoryCache.ts";
 import { memoize, type MemoizeCache } from "./memoize.ts";
+import { memoryCache } from "./memoryCache.ts";
 
 /**
  * Options for {@link memoizeAsync} function.
  */
-export interface MemoizeAsyncOptions<A extends readonly unknown[], R> {
+export interface MemoizeAsyncOptions<
+  in A extends readonly unknown[],
+  in out R,
+> {
   /**
    * Memoization cache implementation.
    *
    * Defaults to {@link memoryCache}.
    */
-  cache?: MemoizeAsyncCache<A, R> | undefined;
+  cache?: MemoizeAsyncCache<A, NonNullable<R>> | undefined;
+
+  /**
+   * Additional **sync** cache implementation for caching promises.
+   *
+   * This cache is used to store promises for concurrent calls with the same arguments.
+   * Therefore it must be a synchronous cache.
+   *
+   * Defaults to {@link memoryCache}
+   */
+  promiseCache?: MemoizeCache<A, Promise<R>> | undefined;
 
   /**
    * Whether to recalculate the result if it was found in the cache.
@@ -77,28 +90,21 @@ export interface MemoizeAsyncOptions<A extends readonly unknown[], R> {
  * @template K Cache key type.
  * @template V Cache value type.
  */
-export interface MemoizeAsyncCache<K extends readonly unknown[], V> {
+export interface MemoizeAsyncCache<
+  in K extends readonly unknown[],
+  in out V extends NonNullable<unknown>,
+> {
   /** Retrieves the value from the cache. */
   get: (
     this: void,
     key: K,
-  ) => Promise<V | null | undefined> | V | null | undefined;
+  ) => Promise<V | undefined> | V | undefined;
 
   /** Sets the value in the cache. */
-  set: (this: void, key: K, value: NonNullable<V>) => Promise<void> | void;
+  set: (this: void, key: K, value: V) => Promise<void> | void;
 
   /** Deletes the value from the cache. */
   delete: (this: void, key: K) => Promise<void> | void;
-
-  /**
-   * Initializes additional **sync** cache for caching promises.
-   *
-   * This cache is used to store promises for concurrent calls with the same arguments.
-   * Therefore it must be a synchronous cache.
-   *
-   * Defaults to {@link memoryCache}.
-   */
-  promiseCache?: (this: void) => MemoizeCache<K, Promise<V>>;
 }
 
 /**
@@ -118,9 +124,8 @@ export function memoizeAsync<A extends readonly unknown[], R>(
   fn: (...args: A) => Promise<R> | R,
   options?: MemoizeAsyncOptions<A, R>,
 ): (...args: A) => Promise<R> {
-  const cache = options?.cache ?? memoryCache<A, NonNullable<R>>();
-  const promiseCache = options?.cache?.promiseCache?.() ??
-    memoryCache<A, Promise<R>>();
+  const cache = options?.cache ?? memoryCache();
+  const promiseCache = options?.promiseCache ?? memoryCache();
   return memoize(
     async (...args: A) => {
       try {

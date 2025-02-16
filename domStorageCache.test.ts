@@ -1,7 +1,7 @@
-import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertEquals } from "@std/assert";
+import { domStorageCache } from "./domStorageCache.ts";
 import { memoize } from "./memoize.ts";
 import { memoizeAsync } from "./memoizeAsync.ts";
-import { domStorageCache } from "./domStorageCache.ts";
 
 Deno.test("works with sync memoize", () => {
   let counter = 0;
@@ -62,7 +62,10 @@ Deno.test("works with async memoize", async () => {
 });
 
 Deno.test("accepts object args", () => {
-  const fn = (o: { a: string; b: number }, a: unknown[]) => {
+  const fn = (
+    o: { a: string; b: number },
+    a: (string | number | boolean)[],
+  ) => {
     return `${o.a} ${o.b} ${a.length}`;
   };
 
@@ -71,22 +74,22 @@ Deno.test("accepts object args", () => {
   });
 
   assertEquals(
-    sessionStorage.getItem('arg:object[{"a":"a","b":1},[true,null]]'),
+    sessionStorage.getItem('arg:object[{"a":"a","b":1},[true,"foo"]]'),
     null,
   );
-  assertEquals(memoFn({ a: "a", b: 1 }, [true, null]), "a 1 2");
+  assertEquals(memoFn({ a: "a", b: 1 }, [true, "foo"]), "a 1 2");
   assertEquals(
-    sessionStorage.getItem('arg:object[{"a":"a","b":1},[true,null]]'),
+    sessionStorage.getItem('arg:object[{"a":"a","b":1},[true,"foo"]]'),
     '"a 1 2"',
   );
 
   assertEquals(
-    sessionStorage.getItem('arg:object[{"a":"b","b":2},[false,{},[]]]'),
+    sessionStorage.getItem('arg:object[{"a":"b","b":2},[false,1,2]]'),
     null,
   );
-  assertEquals(memoFn({ a: "b", b: 2 }, [false, {}, []]), "b 2 3");
+  assertEquals(memoFn({ a: "b", b: 2 }, [false, 1, 2]), "b 2 3");
   assertEquals(
-    sessionStorage.getItem('arg:object[{"a":"b","b":2},[false,{},[]]]'),
+    sessionStorage.getItem('arg:object[{"a":"b","b":2},[false,1,2]]'),
     '"b 2 3"',
   );
 });
@@ -122,7 +125,7 @@ Deno.test("accepts Date args", () => {
 });
 
 Deno.test("caches object values", () => {
-  const fn = (a: unknown) => {
+  const fn = (a: string | number | boolean | null) => {
     return { a: [a] };
   };
 

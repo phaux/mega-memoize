@@ -1,4 +1,4 @@
-import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertEquals } from "@std/assert";
 import { memoize } from "./memoize.ts";
 import { smartKeyNormalizer } from "./KeyNormalizer.ts";
 import { memoryCache } from "./memoryCache.ts";
@@ -53,7 +53,7 @@ Deno.test("accepts Map args", () => {
 
 Deno.test("accepts Set args", () => {
   const fn = (a: Set<number>) => {
-    return a.size;
+    return a.size > 0 ? a.size : null;
   };
 
   const map = new Map<string, number>();
@@ -109,4 +109,69 @@ Deno.test("accepts ArrayBuffer args", () => {
   assertEquals(map.get("[[0,0,0,0]]"), undefined);
   assertEquals(memoFn(new ArrayBuffer(4)), 4);
   assertEquals(map.get("[[0,0,0,0]]"), 4);
+});
+
+Deno.test("accepts URL args", () => {
+  const fn = (a: URL) => {
+    return a.origin;
+  };
+
+  const map = new Map<string, string>();
+
+  const memoFn = memoize(fn, {
+    cache: memoryCache({ map, keyNormalizer: smartKeyNormalizer() }),
+  });
+
+  assertEquals(map.get('["https://example.com/foo"]'), undefined);
+  assertEquals(
+    memoFn(new URL("https://example.com/foo")),
+    "https://example.com",
+  );
+  assertEquals(map.get('["https://example.com/foo"]'), "https://example.com");
+
+  assertEquals(map.get('["https://example.com/bar"]'), undefined);
+  assertEquals(
+    memoFn(new URL("https://example.com/bar")),
+    "https://example.com",
+  );
+  assertEquals(map.get('["https://example.com/bar"]'), "https://example.com");
+});
+
+Deno.test("accepts Date args", () => {
+  const fn = (a: Date, b: Date) => {
+    return a.getUTCFullYear() + b.getUTCFullYear();
+  };
+
+  const map = new Map<string, number>();
+
+  const memoFn = memoize(fn, {
+    cache: memoryCache({ map, keyNormalizer: smartKeyNormalizer() }),
+  });
+
+  assertEquals(
+    map.get('["2000-01-01T00:00:00.000Z","2000-01-01T00:00:00.000Z"]'),
+    undefined,
+  );
+  assertEquals(
+    memoFn(new Date("2000-01-01T00:00:00Z"), new Date("2000-01-01T00:00:00Z")),
+    4000,
+  );
+  console.log(map);
+  assertEquals(
+    map.get('["2000-01-01T00:00:00.000Z","2000-01-01T00:00:00.000Z"]'),
+    4000,
+  );
+
+  assertEquals(
+    map.get('["2010-02-01T00:00:00.000Z","2020-03-01T00:00:00.000Z"]'),
+    undefined,
+  );
+  assertEquals(
+    memoFn(new Date("2010-02-01T00:00:00Z"), new Date("2020-03-01T00:00:00Z")),
+    4030,
+  );
+  assertEquals(
+    map.get('["2010-02-01T00:00:00.000Z","2020-03-01T00:00:00.000Z"]'),
+    4030,
+  );
 });

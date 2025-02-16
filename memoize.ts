@@ -27,13 +27,13 @@ import { memoryCache } from "./memoryCache.ts";
 /**
  * Options for {@link memoize}.
  */
-export interface MemoizeOptions<A extends readonly unknown[], R> {
+export interface MemoizeOptions<in A extends readonly unknown[], in out R> {
   /**
    * Memoization cache implementation.
    *
    * Defaults to {@link memoryCache}.
    */
-  cache?: MemoizeCache<A, R> | undefined;
+  cache?: MemoizeCache<A, NonNullable<R>> | undefined;
 
   /**
    * Whether to recalculate the result if it was found in the cache.
@@ -68,12 +68,15 @@ export interface MemoizeOptions<A extends readonly unknown[], R> {
  * @template K Cache key type.
  * @template V Cache value type.
  */
-export interface MemoizeCache<K extends readonly unknown[], V> {
+export interface MemoizeCache<
+  in K extends readonly unknown[],
+  in out V extends NonNullable<unknown>,
+> {
   /** Retrieves the value from the cache. */
-  get: (this: void, key: K) => V | null | undefined;
+  get: (this: void, key: K) => V | undefined;
 
   /** Sets the value in the cache. */
-  set: (this: void, key: K, value: NonNullable<V>) => void;
+  set: (this: void, key: K, value: V) => void;
 
   /** Deletes the value from the cache. */
   delete: (this: void, key: K) => void;
@@ -93,7 +96,7 @@ export interface MemoizeCache<K extends readonly unknown[], V> {
  */
 export function memoize<A extends readonly unknown[], R>(
   fn: (...args: A) => R,
-  options?: MemoizeOptions<A, R>,
+  options?: NoInfer<MemoizeOptions<A, R>>,
 ): (...args: A) => R {
   const cache = options?.cache ?? memoryCache();
 

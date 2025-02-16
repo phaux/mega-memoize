@@ -1,7 +1,4 @@
-import {
-  assert,
-  assertEquals,
-} from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert, assertEquals } from "@std/assert";
 import { memoize } from "./memoize.ts";
 import { memoizeAsync } from "./memoizeAsync.ts";
 import { memoryCache } from "./memoryCache.ts";
@@ -51,7 +48,10 @@ Deno.test("works with async memoize", async () => {
 Deno.test("accepts object args", () => {
   let counter = 0;
 
-  const fn = (o: { a: string; b: number }, a: unknown[]) => {
+  const fn = (
+    o: { a: string; b: number },
+    a: (boolean | null | undefined)[],
+  ) => {
     counter++;
     return `${o.a} ${o.b} ${a.length}`;
   };
@@ -63,9 +63,9 @@ Deno.test("accepts object args", () => {
   assertEquals(memoFn({ a: "a", b: 1 }, [true, null]), "a 1 2");
   assertEquals(counter, 1);
 
-  assertEquals(memoFn({ a: "b", b: 2 }, [false, {}, []]), "b 2 3");
+  assertEquals(memoFn({ a: "b", b: 2 }, [false, undefined, null]), "b 2 3");
   assertEquals(counter, 2);
-  assertEquals(memoFn({ a: "b", b: 2 }, [false, {}, []]), "b 2 3");
+  assertEquals(memoFn({ a: "b", b: 2 }, [false, undefined, null]), "b 2 3");
   assertEquals(counter, 2);
 });
 

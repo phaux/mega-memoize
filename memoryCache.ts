@@ -1,10 +1,10 @@
-import type { KeyNormalizer } from "./KeyNormalizer.ts";
+import { type KeyNormalizer, smartKeyNormalizer } from "./KeyNormalizer.ts";
 import type { MemoizeCache } from "./memoize.ts";
 
 /**
  * Options for {@link memoryCache}.
  */
-export interface MemoryCacheOptions<A extends readonly unknown[], R> {
+export interface MemoryCacheOptions<in A extends readonly unknown[], in out R> {
   /**
    * Use already existing {@link Map} instance.
    */
@@ -13,7 +13,7 @@ export interface MemoryCacheOptions<A extends readonly unknown[], R> {
   /**
    * Custom key normalizer.
    *
-   * Defaults to {@link JSON.stringify}.
+   * Defaults to {@link smartKeyNormalizer}.
    */
   keyNormalizer?: KeyNormalizer<A> | undefined;
 }
@@ -27,11 +27,14 @@ export interface MemoryCacheOptions<A extends readonly unknown[], R> {
  * @template A Arguments tuple type.
  * @template R Result type.
  */
-export function memoryCache<A extends readonly unknown[], R>(
+export function memoryCache<
+  A extends readonly unknown[],
+  R extends NonNullable<unknown>,
+>(
   options?: MemoryCacheOptions<A, R>,
 ): MemoizeCache<A, R> {
   const map = options?.map ?? new Map<string, R>();
-  const normalize: KeyNormalizer<A> = options?.keyNormalizer ?? JSON.stringify;
+  const normalize = options?.keyNormalizer ?? smartKeyNormalizer();
 
   return {
     get: (key) => map.get(normalize(key)),
