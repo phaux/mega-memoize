@@ -19,5 +19,8 @@
     "./keyNormalizer": "./KeyNormalizer.ts",
     "./valueSerializer": "./ValueSerializer.ts"
   },
+  "publish": {
+    "exclude": [".*"]
+  },
   "lock": false
 }
