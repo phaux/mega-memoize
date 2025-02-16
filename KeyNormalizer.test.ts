@@ -46,6 +46,20 @@ Deno.test("accepts Map args", () => {
   );
   assertEquals(map.get('[{"a":1,"b":2}]'), 2);
 
+  assertEquals(map.get('[{"foo":321,"bar":123}]'), undefined);
+  assertEquals(map.get('[{"bar":123,"foo":321}]'), undefined);
+  assertEquals(
+    memoFn(
+      new Map([
+        ["foo", 321],
+        ["bar", 123],
+      ]),
+    ),
+    2,
+  );
+  assertEquals(map.get('[{"foo":321,"bar":123}]'), undefined);
+  assertEquals(map.get('[{"bar":123,"foo":321}]'), 2);
+
   assertEquals(map.get('[{"c":3}]'), undefined);
   assertEquals(memoFn(new Map([["c", 3]])), 1);
   assertEquals(map.get('[{"c":3}]'), 1);
@@ -65,6 +79,13 @@ Deno.test("accepts Set args", () => {
   assertEquals(map.get("[[1,2]]"), undefined);
   assertEquals(memoFn(new Set([1, 2])), 2);
   assertEquals(map.get("[[1,2]]"), 2);
+  assertEquals(memoFn(new Set([2, 1])), 2);
+
+  assertEquals(map.get("[[10,20,30]]"), undefined);
+  assertEquals(map.get("[[30,20,10]]"), undefined);
+  assertEquals(memoFn(new Set([30, 20, 10])), 3);
+  assertEquals(map.get("[[10,20,30]]"), 3);
+  assertEquals(map.get("[[30,20,10]]"), undefined);
 
   assertEquals(map.get("[[3]]"), undefined);
   assertEquals(memoFn(new Set([3])), 1);
@@ -156,7 +177,6 @@ Deno.test("accepts Date args", () => {
     memoFn(new Date("2000-01-01T00:00:00Z"), new Date("2000-01-01T00:00:00Z")),
     4000,
   );
-  console.log(map);
   assertEquals(
     map.get('["2000-01-01T00:00:00.000Z","2000-01-01T00:00:00.000Z"]'),
     4000,
@@ -173,5 +193,43 @@ Deno.test("accepts Date args", () => {
   assertEquals(
     map.get('["2010-02-01T00:00:00.000Z","2020-03-01T00:00:00.000Z"]'),
     4030,
+  );
+});
+
+Deno.test("accepts RegExp args", () => {
+  const fn = (a: RegExp, b: RegExp) => {
+    return a.source + b.source;
+  };
+
+  const map = new Map<string, string>();
+
+  const memoFn = memoize(fn, {
+    cache: memoryCache({ map, keyNormalizer: smartKeyNormalizer() }),
+  });
+
+  assertEquals(
+    map.get('["/^foo/","/^bar/"]'),
+    undefined,
+  );
+  assertEquals(
+    memoFn(new RegExp("^foo"), new RegExp("^bar")),
+    "^foo^bar",
+  );
+  assertEquals(
+    map.get('["/^foo/","/^bar/"]'),
+    "^foo^bar",
+  );
+
+  assertEquals(
+    map.get('["/^foo/g","/^bar/g"]'),
+    undefined,
+  );
+  assertEquals(
+    memoFn(new RegExp("^foo", "g"), new RegExp("^bar", "g")),
+    "^foo^bar",
+  );
+  assertEquals(
+    map.get('["/^foo/g","/^bar/g"]'),
+    "^foo^bar",
   );
 });

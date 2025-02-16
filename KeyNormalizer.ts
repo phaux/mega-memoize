@@ -7,7 +7,7 @@ export type KeyNormalizer<in T> = (this: void, key: T) => string;
  * Initializes a smart normalizer for memoization caches that need to stringify keys.
  *
  * Uses {@link JSON.stringify} with custom support for common types.
- * Supports {@link BigInt}, {@link Uint8Array}, {@link Date}, {@link ArrayBuffer}, {@link Map}, {@link Set}.
+ * Supports {@link BigInt}, {@link Uint8Array}, {@link ArrayBuffer}, {@link Date}, {@link URL}, {@link Map}, {@link Set}, {@link RegExp}.
  */
 export function smartKeyNormalizer<T>(): KeyNormalizer<T> {
   return (key) => {
@@ -25,6 +25,8 @@ export function smartKeyNormalizer<T>(): KeyNormalizer<T> {
           );
         case value instanceof Set:
           return Array.from(value).sort();
+        case value instanceof RegExp:
+          return value.toString();
         default:
           return value;
       }
