@@ -1,7 +1,4 @@
-import {
-  assertEquals,
-  assertThrows,
-} from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertEquals, assertThrows } from "@std/assert";
 import { memoize } from "./memoize.ts";
 
 Deno.test("accepts primitive args", () => {
@@ -118,8 +115,7 @@ Deno.test("always recalculates nullish results", () => {
   const memoFn = memoize(fn, {
     cache: {
       get(key) {
-        if (key[0] === 0) return undefined;
-        if (key[0] < 0) return null;
+        if (key[0] <= 0) return undefined;
         return key[0];
       },
       set() {},

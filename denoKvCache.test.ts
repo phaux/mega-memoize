@@ -1,9 +1,6 @@
-import {
-  assertEquals,
-  assertObjectMatch,
-} from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { memoizeAsync } from "./memoizeAsync.ts";
+import { assertEquals, assertObjectMatch } from "@std/assert";
 import { denoKvCache } from "./denoKvCache.ts";
+import { memoizeAsync } from "./memoizeAsync.ts";
 
 const db = await Deno.openKv();
 

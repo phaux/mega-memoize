@@ -1,22 +1,28 @@
-import type { ValueSerializer } from "./ValueSerializer.ts";
-import type { KeyNormalizer } from "./KeyNormalizer.ts";
+import { type KeyNormalizer, smartKeyNormalizer } from "./KeyNormalizer.ts";
 import type { MemoizeCache } from "./memoize.ts";
+import {
+  smartValueSerializer,
+  type ValueSerializer,
+} from "./ValueSerializer.ts";
 
 /**
  * Options for {@link localStorageCache}.
  */
-export interface DomStorageCacheOptions<A extends readonly unknown[], R> {
+export interface DomStorageCacheOptions<
+  in A extends readonly unknown[],
+  in out R,
+> {
   /**
    * Custom key normalizer.
    *
-   * Defaults to {@link JSON.stringify}.
+   * Defaults to {@link smartKeyNormalizer}.
    */
   keyNormalizer?: KeyNormalizer<A> | undefined;
 
   /**
    * Custom value serializer.
    *
-   * Defaults to {@link JSON}.
+   * Defaults to {@link smartValueSerializer}.
    */
   valueSerializer?: ValueSerializer<R> | undefined;
 }
@@ -30,13 +36,16 @@ export interface DomStorageCacheOptions<A extends readonly unknown[], R> {
  * @template A Arguments tuple type.
  * @template R Result type.
  */
-export function domStorageCache<A extends readonly unknown[], R>(
+export function domStorageCache<
+  A extends readonly unknown[],
+  R extends NonNullable<unknown>,
+>(
   storage: Storage,
   keyPrefix: string,
   options?: DomStorageCacheOptions<A, R>,
 ): MemoizeCache<A, R> {
-  const normalize = options?.keyNormalizer ?? JSON.stringify;
-  const serializer = options?.valueSerializer ?? JSON;
+  const normalize = options?.keyNormalizer ?? smartKeyNormalizer();
+  const serializer = options?.valueSerializer ?? smartValueSerializer();
 
   return {
     get(key) {

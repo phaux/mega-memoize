@@ -1,7 +1,7 @@
 /**
  * Serializer/deserializer interface for memoization caches that need to serialize values.
  */
-export interface ValueSerializer<T> {
+export interface ValueSerializer<in out T> {
   parse: (this: void, value: string) => T;
   stringify: (this: void, value: T) => string;
 }
@@ -10,9 +10,11 @@ export interface ValueSerializer<T> {
  * Initializes a smart serializer/deserializer for memoization caches that need to serialize values.
  *
  * Uses {@link JSON.stringify} and {@link JSON.parse} with custom support for common types.
- * Supports {@link BigInt}, {@link Uint8Array}, {@link ArrayBuffer}, {@link Map}, and {@link Set}.
+ * Supports {@link BigInt}, {@link Uint8Array}, {@link ArrayBuffer}, {@link Map}, {@link Set}, {@link URL}, {@link URLSearchParams}.
  *
  * Note that {@link Date} is already supported by {@link JSON}, but it always serializes to a string and can't be deserialized back to a Date.
+ * That means all `Date`s will turn into `string`s.
+ * Either don't use `Date` or use `Date | string` everywhere.
  */
 export function smartValueSerializer<T>(): ValueSerializer<T> {
   return {
@@ -30,6 +32,10 @@ export function smartValueSerializer<T>(): ValueSerializer<T> {
               return new Map(value.$map);
             case "$set" in value:
               return new Set(value.$set);
+            case "$url" in value:
+              return new URL(value.$url);
+            case "$urlsearchparams" in value:
+              return new URLSearchParams(value.$urlsearchparams);
           }
         }
         return value;
@@ -48,6 +54,10 @@ export function smartValueSerializer<T>(): ValueSerializer<T> {
             return { $map: Array.from(value) };
           case value instanceof Set:
             return { $set: Array.from(value) };
+          case value instanceof URL:
+            return { $url: value.toString() };
+          case value instanceof URLSearchParams:
+            return { $urlsearchparams: value.toString() };
           default:
             return value;
         }

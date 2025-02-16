@@ -1,13 +1,10 @@
 // deno-lint-ignore-file require-await
-import {
-  assertEquals,
-  assertRejects,
-} from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { delay } from "https://deno.land/std@0.224.0/async/mod.ts";
+import { assertEquals, assertRejects } from "@std/assert";
+import { delay } from "@std/async";
 import { memoizeAsync } from "./memoizeAsync.ts";
 
 Deno.test("allows sync fn", async () => {
-  const fn = (a: unknown) => a;
+  const fn = (a: Record<string, string>) => a;
   const memoFn = memoizeAsync(fn);
   assertEquals(await memoFn({}), {});
 });
@@ -126,8 +123,7 @@ Deno.test("always recalculates nullish results", async () => {
   const memoFn = memoizeAsync(fn, {
     cache: {
       get(key) {
-        if (key[0] === 0) return undefined;
-        if (key[0] < 0) return null;
+        if (key[0] <= 0) return undefined;
         return key[0];
       },
       set() {},
@@ -226,7 +222,7 @@ Deno.test("never caches on reject", async () => {
 Deno.test("returns the same promise for concurrent calls", async () => {
   let counter = 0;
 
-  const fn = async (a: unknown) => {
+  const fn = async (a: number | string) => {
     await delay(100);
     counter++;
     return a;

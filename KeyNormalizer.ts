@@ -1,13 +1,13 @@
 /**
  * Normalizer function for memoization caches that need to stringify keys.
  */
-export type KeyNormalizer<T> = (this: void, key: T) => string;
+export type KeyNormalizer<in T> = (this: void, key: T) => string;
 
 /**
  * Initializes a smart normalizer for memoization caches that need to stringify keys.
  *
  * Uses {@link JSON.stringify} with custom support for common types.
- * Supports {@link BigInt}, {@link Uint8Array}, {@link ArrayBuffer}, {@link Map}, and {@link Set}.
+ * Supports {@link BigInt}, {@link Uint8Array}, {@link Date}, {@link ArrayBuffer}, {@link Map}, {@link Set}.
  */
 export function smartKeyNormalizer<T>(): KeyNormalizer<T> {
   return (key) => {
@@ -20,9 +20,11 @@ export function smartKeyNormalizer<T>(): KeyNormalizer<T> {
         case value instanceof ArrayBuffer:
           return Array.from(new Uint8Array(value));
         case value instanceof Map:
-          return Object.fromEntries(value);
+          return Object.fromEntries(
+            Array.from(value).sort((a, b) => a[0] < b[0] ? -1 : 1),
+          );
         case value instanceof Set:
-          return Array.from(value);
+          return Array.from(value).sort();
         default:
           return value;
       }
